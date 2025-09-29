@@ -1,0 +1,7 @@
+tmp/
+node_modules/
+dist/
+coverage/
+.idea/
+.vscode/
+.DS_Store
