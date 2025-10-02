@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text to Hex</title>
+    <title>Url Beautifier</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
@@ -17,11 +17,7 @@
 
 <div class="container">
     <div id="app">
-        <h3>Text to Hex</h3>
-
-        <div class="mb-3">
-            <a href="https://www.rapidtables.com/convert/number/ascii-to-hex.html" target="_blank" rel="noopener noreferrer">source</a>
-        </div>
+        <h3>Url Beautifier</h3>
 
         <div>
             <div class="mb-3">
@@ -29,12 +25,16 @@
                 <textarea id="inputText" class="form-control" :rows="rows" v-model="text"></textarea>
             </div>
         </div>
+
         <pre>{{ result }}</pre>
     </div>
 </div>
 
 <script>
 const {computed, createApp, ref} = Vue;
+const maxWidth = 150;
+const maxKeyWidth = 50;
+const maxValueWidth = maxWidth - maxKeyWidth;
 
 createApp({
 	setup() {
@@ -44,15 +44,25 @@ createApp({
         });
         const result = computed(() => {
             let result = '';
-            let chars = [];
-            let targetLength = 0;
-            for (const char of text.value) {
-                const charCode = char.charCodeAt(0).toString();
-                targetLength = Math.max(targetLength, charCode.length);
-                chars.push([char, charCode]);
+            if (!text.value) {
+                return result;
             }
-            for (const [char, charCode] of chars) {
-                result += `| ${char} | ${charCode.padEnd(targetLength)} |\n`;
+            let keyWidth = 1, valueWidth = 1;
+            const [url, search] = text.value.split('?');
+            result += url + '\n';
+            if (search) {
+                const kv = search.split('&').map(kv => {
+                    const [key, value] = kv.split('=');
+                    keyWidth = Math.min(Math.max(keyWidth, key.length), maxKeyWidth);
+                    valueWidth = Math.min(Math.max(valueWidth, value.length), maxWidth - keyWidth);
+                    return [key, value];
+                });
+                const border = [keyWidth, valueWidth].map(w => '+'.padEnd(w + 3, '-')).join('') + '+';
+                result += border + '\n';
+                kv.forEach(([key, value]) => {
+                    result += `| ${key.slice(0, maxKeyWidth).padEnd(keyWidth)} | ${value.slice(0, maxValueWidth).padEnd(valueWidth)} |\n`;
+                });
+                result += border;
             }
             return result;
         });

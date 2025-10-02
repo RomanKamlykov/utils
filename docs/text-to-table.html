@@ -26,7 +26,7 @@
         <div>
             <div class="mb-3">
                 <label for="inputText" class="form-label">Text</label>
-                <textarea id="inputText" class="form-control" rows="5" v-model="text"></textarea>
+                <textarea id="inputText" class="form-control" :rows="rows" v-model="text"></textarea>
             </div>
             <div class="mb-3">
                 <label for="inputDelimeter" class="form-label">Delimeter</label>
@@ -53,6 +53,9 @@ const {computed, createApp, ref} = Vue;
 createApp({
 	setup() {
         const text = ref('');
+        const rows = computed(() => {
+            return Math.max(text.value.split('\n').length, 5);
+        });
         const delimeters = [
             {label: 'tab', value: '\t'},
             {label: 'comma', value: ','},
@@ -93,7 +96,7 @@ createApp({
 
             return result;
         });
-        return {text, delimeters, delimeter, columns, header, result};
+        return {text, rows, delimeters, delimeter, columns, header, result};
 	}
 }).mount('#app')
 </script>
