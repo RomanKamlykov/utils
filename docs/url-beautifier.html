@@ -58,7 +58,7 @@ createApp({
                     return [key, value];
                 });
                 kv.forEach(([key, value]) => {
-                    result += `${decodeURIComponent(key).slice(0, keyWidth).padEnd(keyWidth)} | ${decodeURIComponent(value).slice(0, valueWidth).padEnd(valueWidth)}\n`;
+                    result += `${decodeURIComponent(key).slice(0, keyWidth).padEnd(keyWidth)} | ${decodeURIComponent(value).replace(/\n/g, '').slice(0, valueWidth).padEnd(valueWidth)}\n`;
                 });
             }
             return result;
