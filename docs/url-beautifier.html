@@ -32,7 +32,7 @@
 
 <script>
 const {computed, createApp, ref} = Vue;
-const maxWidth = 150;
+const maxWidth = 120;
 const maxKeyWidth = 50;
 const maxValueWidth = maxWidth - maxKeyWidth;
 
@@ -57,12 +57,9 @@ createApp({
                     valueWidth = Math.min(Math.max(valueWidth, value.length), maxWidth - keyWidth);
                     return [key, value];
                 });
-                const border = [keyWidth, valueWidth].map(w => '+'.padEnd(w + 3, '-')).join('') + '+';
-                result += border + '\n';
                 kv.forEach(([key, value]) => {
-                    result += `| ${key.slice(0, maxKeyWidth).padEnd(keyWidth)} | ${value.slice(0, maxValueWidth).padEnd(valueWidth)} |\n`;
+                    result += `${decodeURIComponent(key).slice(0, keyWidth).padEnd(keyWidth)} | ${decodeURIComponent(value).slice(0, valueWidth).padEnd(valueWidth)}\n`;
                 });
-                result += border;
             }
             return result;
         });
