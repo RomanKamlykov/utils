@@ -25,7 +25,8 @@
 
         <div>
             <div class="mb-3">
-                <textarea class="form-control" v-model="text"></textarea>
+                <label for="inputText" class="form-label">Text</label>
+                <textarea id="inputText" class="form-control" rows="5" v-model="text"></textarea>
             </div>
         </div>
         <pre>{{ result }}</pre>
