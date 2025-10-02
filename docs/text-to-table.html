@@ -25,14 +25,22 @@
 
         <div>
             <div class="mb-3">
-                <textarea class="form-control" rows="5" v-model="text"></textarea>
+                <label for="inputText" class="form-label">Text</label>
+                <textarea id="inputText" class="form-control" rows="5" v-model="text"></textarea>
             </div>
             <div class="mb-3">
-                <input type="text" class="form-control" v-model="columns">
+                <label for="inputDelimeter" class="form-label">Delimeter</label>
+                <select id="inputDelimeter" class="form-select" v-model="delimeter">
+                    <option v-for="el in delimeters" :value="el.value">{{ el.label }}</li>
+                </select>
+            </div>
+            <div class="mb-3" v-if="delimeter === '\n'">
+                <label for="inputColumns" class="form-label">Columns</label>
+                <input type="text" id="inputColumns" class="form-control" v-model="columns">
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" v-model="header">
-                <label class="form-check-label" for="checkDefault">Header</label>
+                <input type="checkbox" id="inputHeader" class="form-check-input" v-model="header">
+                <label for="inputHeader" class="form-check-label">Header</label>
             </div>
         </div>
         <pre>{{ result }}</pre>
@@ -45,11 +53,22 @@ const {computed, createApp, ref} = Vue;
 createApp({
 	setup() {
         const text = ref('');
+        const delimeters = [
+            {label: 'tab', value: '\t'},
+            {label: 'comma', value: ','},
+            {label: 'newline', value: '\n'},
+        ];
+        const delimeter = ref(delimeters[0].value);
         const columns = ref('2');
         const header = ref(true);
         const result = computed(() => {
-            const cols = parseInt(columns.value) || 1;
-            const cells = text.value.split('\n').filter(item => item.trim());
+            const cells = delimeter.value === '\n'
+                ? text.value.split(delimeter.value).filter(item => item.trim())
+                : text.value.split('\n').flatMap(row => row.split(delimeter.value));
+            const cols = delimeter.value === '\n'
+                ? (parseInt(columns.value) || 1)
+                : text.value.split('\n')[0].split(delimeter.value).length;
+            
             if (!cells.length) {
                 return '';
             }
@@ -74,7 +93,7 @@ createApp({
 
             return result;
         });
-        return {text, columns, header, result};
+        return {text, delimeters, delimeter, columns, header, result};
 	}
 }).mount('#app')
 </script>
