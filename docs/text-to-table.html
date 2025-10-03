@@ -50,6 +50,14 @@
 <script>
 const {computed, createApp, ref} = Vue;
 
+function chunk(array, size = 1) {
+    const result = [];
+    for (let i = 0; i < array.length; i += size) {
+        result.push(array.slice(i, i + size));
+    }
+    return result;
+}
+
 createApp({
 	setup() {
         const text = ref('');
@@ -65,34 +73,37 @@ createApp({
         const columns = ref('2');
         const header = ref(true);
         const result = computed(() => {
-            const cells = delimeter.value === '\n'
-                ? text.value.split(delimeter.value).filter(item => item.trim())
-                : text.value.split('\n').flatMap(row => row.split(delimeter.value));
-            const cols = delimeter.value === '\n'
-                ? (parseInt(columns.value) || 1)
-                : text.value.split('\n')[0].split(delimeter.value).length;
-            
-            if (!cells.length) {
-                return '';
+            let result = '';
+            if (!text.value) {
+                return result;
             }
 
-            const width = cells.reduce((acc, cell, index) => {
-                acc[index % cols] = Math.max(acc[index % cols] || 1, cell.length || 1);
-                return acc;
-            }, []);
+            const lines = text.value.split('\n');
+            const rows = delimeter.value === '\n'
+                ? chunk(lines.filter(line => line.trim()), +columns.value)
+                : lines.map(line => line.split(delimeter.value));
+
+            const cols = rows[0].length;
+            const width = [];
+            rows.forEach(row => {
+                row.forEach((cell, i) => {
+                    width[i] = Math.max(cell.length, width[i] || 1, );
+                });
+            });
 
             const border = width.map(w => '+'.padEnd(w + 3, '-')).join('') + '+';
 
-            const result = border + '\n' + cells.reduce((acc, cell, index) => {
-                acc += `| ${cell.padEnd(width[index % cols])} `;
-                if ((index % cols) !== 0) {
-                    acc += '|\n';
+            result += border + '\n';
+            rows.forEach((row, i) => {
+                row.forEach((cell, i) => {
+                    result += `| ${cell.padEnd(width[i])} `;
+                });
+                result += '|\n';
+                if (header.value && i === 0) {
+                    result += border + '\n';
                 }
-                if (header.value && index + 1 === cols) {
-                    acc += border + '\n';
-                }
-                return acc;
-            }, '') + border;
+            });
+            result += border;
 
             return result;
         });
