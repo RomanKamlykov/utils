@@ -95,7 +95,11 @@ createApp({
                 ? chunk(lines.filter(line => line.trim()), +columns.value)
                 : lines.map(line => line.split(delimeter.value));
             if (style.value !== '|') {
-                return rows.map(row => row.map(cell => cell.includes(',') ? `"${cell}"` : cell).join(style.value)).join('\n');
+                return rows.map(row => {
+                    return row.map(cell => {
+                        return style.value == ',' && cell.includes(',') ? `"${cell}"` : cell;
+                    }).join(style.value);
+                }).join('\n');
             }
             const cols = rows[0].length;
             const width = [];
