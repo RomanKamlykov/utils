@@ -38,7 +38,13 @@
                 <label for="inputColumns" class="form-label">Columns</label>
                 <input type="text" id="inputColumns" class="form-control" v-model="columns">
             </div>
-            <div class="form-check">
+            <div class="mb-3">
+                <label for="inputStyle" class="form-label">Style</label>
+                <select id="inputStyle" class="form-select" v-model="style">
+                    <option v-for="el in styles" :value="el.value">{{ el.label }}</li>
+                </select>
+            </div>
+            <div class="form-check" v-if="style === '|'">
                 <input type="checkbox" id="inputHeader" class="form-check-input" v-model="header">
                 <label for="inputHeader" class="form-check-label">Header</label>
             </div>
@@ -71,6 +77,12 @@ createApp({
         ];
         const delimeter = ref(delimeters[0].value);
         const columns = ref('2');
+        const styles = [
+            {label: 'ASCII', value: '|'},
+            {label: 'TSV', value: '\t'},
+            {label: 'CSV', value: ','},
+        ];
+        const style = ref(styles[0].value);
         const header = ref(true);
         const result = computed(() => {
             let result = '';
@@ -82,7 +94,9 @@ createApp({
             const rows = delimeter.value === '\n'
                 ? chunk(lines.filter(line => line.trim()), +columns.value)
                 : lines.map(line => line.split(delimeter.value));
-
+            if (style.value !== '|') {
+                return rows.map(row => row.map(cell => cell.includes(',') ? `"${cell}"` : cell).join(style.value)).join('\n');
+            }
             const cols = rows[0].length;
             const width = [];
             rows.forEach(row => {
@@ -107,7 +121,7 @@ createApp({
 
             return result;
         });
-        return {text, rows, delimeters, delimeter, columns, header, result};
+        return {text, rows, delimeters, delimeter, styles, style, columns, header, result};
 	}
 }).mount('#app')
 </script>
