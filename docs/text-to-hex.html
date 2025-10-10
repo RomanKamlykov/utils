@@ -40,7 +40,7 @@ createApp({
 	setup() {
         const text = ref('');
         const rows = computed(() => {
-            return Math.max(text.value.split('\n').length, 5);
+            return Math.min(Math.max(text.value.split('\n').length, 5), 20);
         });
         const result = computed(() => {
             let result = '';

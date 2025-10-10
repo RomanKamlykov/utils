@@ -66,9 +66,17 @@ function chunk(array, size = 1) {
 
 createApp({
 	setup() {
-        const text = ref('');
+        const rawText = ref('');
+        const text = computed({
+            get() {
+                return rawText.value
+            },
+            set(val) {
+                rawText.value = val.replace(/[\r\n]+/g, '\n');
+            },
+        });
         const rows = computed(() => {
-            return Math.max(text.value.split('\n').length, 5);
+            return Math.min(Math.max(text.value.split('\n').length, 5), 20);
         });
         const delimeters = [
             {label: 'tab', value: '\t'},
