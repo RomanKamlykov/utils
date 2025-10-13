@@ -87,6 +87,7 @@ createApp({
         const columns = ref('2');
         const styles = [
             {label: 'ASCII', value: '|'},
+            {label: 'Markdown', value: 'm'},
             {label: 'TSV', value: '\t'},
             {label: 'CSV', value: ','},
         ];
@@ -102,13 +103,17 @@ createApp({
             const rows = delimeter.value === '\n'
                 ? chunk(lines.filter(line => line.trim()), +columns.value)
                 : lines.map(line => line.split(delimeter.value));
-            if (style.value !== '|') {
+
+            // TSV & CSV
+            if (style.value === '\t' || style.value === ',') {
                 return rows.map(row => {
                     return row.map(cell => {
                         return style.value == ',' && cell.includes(',') ? `"${cell}"` : cell;
                     }).join(style.value);
                 }).join('\n');
             }
+
+            // ASCII & Markdown
             const cols = rows[0].length;
             const width = [];
             rows.forEach(row => {
@@ -117,9 +122,16 @@ createApp({
                 });
             });
 
-            const border = width.map(w => '+'.padEnd(w + 3, '-')).join('') + '+';
+            const border = style.value === '|'
+                // ASCII
+                ? width.map(w => '+'.padEnd(w + 3, '-')).join('') + '+'
+                // Markdown
+                : width.map(w => '|'.padEnd(w + 3, '-')).join('') + '|';
 
-            result += border + '\n';
+            // ASCII border top
+            if (style.value === '|') {
+                result += border + '\n';
+            }
             rows.forEach((row, i) => {
                 row.forEach((cell, i) => {
                     result += `| ${cell.padEnd(width[i])} `;
@@ -129,7 +141,10 @@ createApp({
                     result += border + '\n';
                 }
             });
-            result += border;
+            // ASCII border bottom
+            if (style.value === '|') {
+                result += border;
+            }
 
             return result;
         });
