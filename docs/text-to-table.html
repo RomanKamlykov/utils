@@ -87,6 +87,7 @@ createApp({
         const columns = ref('2');
         const styles = [
             {label: 'ASCII', value: '|'},
+            {label: 'ASCII comment', value: '/*'},
             {label: 'Markdown', value: 'm'},
             {label: 'TSV', value: '\t'},
             {label: 'CSV', value: ','},
@@ -122,14 +123,14 @@ createApp({
                 });
             });
 
-            const border = style.value === '|'
+            const border = style.value === '|' || style.value === '/*'
                 // ASCII
                 ? width.map(w => '+'.padEnd(w + 3, '-')).join('') + '+'
                 // Markdown
                 : width.map(w => '|'.padEnd(w + 3, '-')).join('') + '|';
 
             // ASCII border top
-            if (style.value === '|') {
+            if (style.value === '|' || style.value === '/*') {
                 result += border + '\n';
             }
             rows.forEach((row, i) => {
@@ -142,8 +143,12 @@ createApp({
                 }
             });
             // ASCII border bottom
-            if (style.value === '|') {
+            if (style.value === '|' || style.value === '/*') {
                 result += border;
+            }
+            // ASCII comment
+            if (style.value === '/*') {
+                result = '/*' + result.slice(2, -2) + '*/';
             }
 
             return result;
