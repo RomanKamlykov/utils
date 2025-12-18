@@ -39,6 +39,7 @@ const mysqlTypescript = {
     'datetime': 'Date',
     'timestamp': 'Date',
     'tinyint': 'boolean',
+    'text': 'string',
 }
 
 function snakeToCamel(str) {
@@ -62,13 +63,16 @@ createApp({
             if (!text.value) {
                 return result;
             }
-            const lines = text.value.split('\n').map(line => line.trim()).filter(Boolean);
-            const name = upperFirst(snakeToCamel(lines[0].split('"')[1]));
-            const fields = lines.slice(1).filter(line => line.startsWith('"')).map(line => {
+            const lines = text.value.split('\n').map(line => line.replace(/ +/g, ' ').trim()).filter(Boolean);
+            const name = upperFirst(snakeToCamel(lines[0].split('"')[1] || lines[0].split('`')[1]));
+            const fields = lines.slice(1).filter(line => line.startsWith('"') || line.startsWith('`')).map(line => {
                 let [column, type] = line.split(' ');
-                column = column.replace(/"/g, '');
+                column = column.replace(/["`]/g, '');
+                type = type.replace(/,/g, '');
                 [type] = type.split('(');
-                type = mysqlTypescript[type];
+                type = type === 'enum'
+                    ? (line.match(/enum\s*\(([^)]+)\)/i)?.[1].replace(/'/g, '').split(',').map(v => `'${v.trim()}'`) ?? []).join(' | ')
+                    : mysqlTypescript[type];
                 return [column, type];
             });
             result += `type ${name} = {\n`;
