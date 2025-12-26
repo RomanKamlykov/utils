@@ -109,7 +109,7 @@ createApp({
             if (style.value === '\t' || style.value === ',') {
                 return rows.map(row => {
                     return row.map(cell => {
-                        return style.value == ',' && cell.includes(',') ? `"${cell}"` : cell;
+                        return style.value === ',' && cell.includes(',') ? `"${cell}"` : cell;
                     }).join(style.value);
                 }).join('\n');
             }
