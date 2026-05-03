@@ -82,6 +82,7 @@ createApp({
             {label: 'tab', value: '\t'},
             {label: 'comma', value: ','},
             {label: 'newline', value: '\n'},
+            {label: 'Markdown', value: 'md'},
         ];
         const delimeter = ref(delimeters[0].value);
         const columns = ref('2');
@@ -101,9 +102,24 @@ createApp({
             }
 
             const lines = text.value.split('\n');
-            const rows = delimeter.value === '\n'
-                ? chunk(lines.filter(line => line.trim()), +columns.value)
-                : lines.map(line => line.split(delimeter.value));
+            let rows = [];
+            if (delimeter.value === 'md') {
+                rows = lines
+                    .filter(line => line.includes('|'))
+                    .map(line => {
+                        const parts = line.split('|');
+                        // Remove leading/trailing empty elements from outer pipes
+                        if (parts[0].trim() === '') parts.shift();
+                        if (parts.length > 0 && parts[parts.length - 1].trim() === '') parts.pop();
+                        return parts.map(cell => cell.trim());
+                    })
+                    // Filter out separator rows (e.g., | --- | --- |)
+                    .filter(row => !row.every(cell => cell.match(/^[:\-\s]+$/) && cell.includes('-')));
+            } else {
+                rows = delimeter.value === '\n'
+                    ? chunk(lines.filter(line => line.trim()), +columns.value)
+                    : lines.map(line => line.split(delimeter.value));
+            }
 
             // TSV & CSV
             if (style.value === '\t' || style.value === ',') {
