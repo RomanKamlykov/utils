@@ -19,10 +19,6 @@
     <div id="app">
         <h3>JSON to JS</h3>
 
-        <div class="mb-3">
-            <a href="https://www.rapidtables.com/convert/number/ascii-to-hex.html" target="_blank" rel="noopener noreferrer">source</a>
-        </div>
-
         <div>
             <div class="mb-3">
                 <label for="inputText" class="form-label">Text</label>
@@ -52,7 +48,7 @@ function stringifyValue(value, depth = 0) {
 }
 
 createApp({
-	setup() {
+    setup() {
         const text = ref('');
         const rows = computed(() => {
             return Math.min(Math.max(text.value.split('\n').length, 5), 20);
@@ -66,8 +62,8 @@ createApp({
             return result;
         });
         return {text, rows, result};
-	}
-}).mount('#app')
+    }
+}).mount('#app');
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -55,12 +55,12 @@ createApp({
                 header = JSON.stringify(JSON.parse(atob(h)), null, 4);
                 payload = JSON.stringify(JSON.parse(atob(p)), null, 4);
             } catch {}
-            
+
             return {header, payload};
         });
         return {text, rows, result};
 	}
-}).mount('#app')
+}).mount('#app');
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
