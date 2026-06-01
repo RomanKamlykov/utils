@@ -34,12 +34,14 @@ const {computed, createApp, ref} = Vue;
 
 const mysqlTypescript = {
     'int': 'number',
+    'bigint': 'number',
     'decimal': 'number',
     'varchar': 'string',
     'datetime': 'Date',
     'timestamp': 'Date',
     'tinyint': 'boolean',
     'text': 'string',
+    'binary': 'Buffer',
 }
 
 function snakeToCamel(str) {
