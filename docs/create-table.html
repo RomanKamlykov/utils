@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Table</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+
+<nav class="navbar bg-body-tertiary">
+    <div class="container">
+        <a class="navbar-brand" href="/utils">Utils</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div id="app">
+        <h3>Create Table</h3>
+
+        <div class="mb-3">
+            <table class="table table-bordered align-middle" style="width: auto;">
+                <tbody>
+                <tr v-for="(row, r) in grid" :key="r">
+                    <td v-for="(cell, c) in row" :key="c">
+                        <textarea class="form-control" style="min-width: 16rem; min-height: 8rem; resize: both;" v-model="grid[r][c]"></textarea>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mb-3 d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary" @click="addRow">Add row</button>
+            <button type="button" class="btn btn-outline-secondary" @click="removeRow" :disabled="grid.length <= 1">Remove row</button>
+            <button type="button" class="btn btn-outline-primary" @click="addColumn">Add column</button>
+            <button type="button" class="btn btn-outline-secondary" @click="removeColumn" :disabled="grid[0].length <= 1">Remove column</button>
+        </div>
+
+        <div class="mb-3">
+            <button type="button" class="btn btn-outline-success" @click="copyResult">{{ copyLabel }}</button>
+        </div>
+        <div class="mb-3">
+            <label for="outputText" class="form-label">Output (paste a table here to load it)</label>
+            <textarea id="outputText" class="form-control font-monospace" :rows="outputRows" v-model="outputText" @paste="onOutputPaste" @blur="syncFromOutput"></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+const {computed, createApp, ref, watch} = Vue;
+
+function formatGrid(grid) {
+    const colCount = grid[0].length;
+    const colWidth = new Array(colCount).fill(1);
+    grid.forEach(row => {
+        row.forEach((cell, c) => {
+            cell.split('\n').forEach(line => {
+                colWidth[c] = Math.max(colWidth[c], line.length);
+            });
+        });
+    });
+
+    const border = '+' + colWidth.map(w => '-'.repeat(w + 2)).join('+') + '+';
+
+    let result = border + '\n';
+    grid.forEach(row => {
+        const cellLines = row.map(cell => cell.split('\n'));
+        const lineCount = Math.max(...cellLines.map(lines => lines.length));
+        for (let i = 0; i < lineCount; i++) {
+            result += cellLines.map((lines, c) => `| ${(lines[i] || '').padEnd(colWidth[c])} `).join('') + '|\n';
+        }
+        result += border + '\n';
+    });
+
+    return result.trimEnd();
+}
+
+function parseTable(text) {
+    const borderRegex = /^\+(-+\+)+$/;
+    const rows = [];
+    let currentRowLines = [];
+    for (const line of text.split('\n')) {
+        if (borderRegex.test(line.trim())) {
+            if (currentRowLines.length) {
+                rows.push(currentRowLines);
+                currentRowLines = [];
+            }
+        } else if (line.trim() !== '') {
+            currentRowLines.push(line);
+        }
+    }
+    if (currentRowLines.length) {
+        rows.push(currentRowLines);
+    }
+    if (!rows.length) {
+        return null;
+    }
+
+    const grid = rows.map(rowLines => {
+        const cellsPerLine = rowLines.map(line => {
+            return line.split('|').slice(1, -1).map(cell => cell.trim());
+        });
+        const colCount = Math.max(...cellsPerLine.map(cells => cells.length));
+        const row = [];
+        for (let c = 0; c < colCount; c++) {
+            const cell = cellsPerLine.map(cells => cells[c] || '').join('\n');
+            row.push(cell.replace(/\n+$/, ''));
+        }
+        return row;
+    });
+
+    const colCount = Math.max(...grid.map(row => row.length));
+    grid.forEach(row => {
+        while (row.length < colCount) {
+            row.push('');
+        }
+    });
+
+    return grid;
+}
+
+createApp({
+    setup() {
+        const grid = ref([
+            ['', ''],
+            ['', ''],
+        ]);
+        const copyLabel = ref('Copy to clipboard');
+        const outputText = ref(formatGrid(grid.value));
+        const outputRows = computed(() => {
+            return Math.min(Math.max(outputText.value.split('\n').length, 5), 20);
+        });
+
+        watch(grid, () => {
+            outputText.value = formatGrid(grid.value);
+        }, {deep: true});
+
+        function addRow() {
+            grid.value.push(new Array(grid.value[0].length).fill(''));
+        }
+        function removeRow() {
+            if (grid.value.length > 1) {
+                grid.value.pop();
+            }
+        }
+        function addColumn() {
+            grid.value.forEach(row => row.push(''));
+        }
+        function removeColumn() {
+            if (grid.value[0].length > 1) {
+                grid.value.forEach(row => row.pop());
+            }
+        }
+        function syncFromOutput() {
+            const parsed = parseTable(outputText.value);
+            if (parsed && parsed.length && parsed[0].length) {
+                grid.value = parsed;
+            }
+        }
+        function onOutputPaste() {
+            setTimeout(syncFromOutput, 0);
+        }
+        function copyResult() {
+            navigator.clipboard.writeText(outputText.value).then(() => {
+                copyLabel.value = 'Copied!';
+                setTimeout(() => copyLabel.value = 'Copy to clipboard', 1500);
+            });
+        }
+
+        return {
+            grid, outputText, outputRows, copyLabel,
+            addRow, removeRow, addColumn, removeColumn,
+            syncFromOutput, onOutputPaste, copyResult,
+        };
+    }
+}).mount('#app');
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
